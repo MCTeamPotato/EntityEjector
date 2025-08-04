@@ -13,10 +13,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class EntityMixin {
     @Shadow public abstract EntityType<?> getType();
 
-    @Shadow public abstract void discard();
+    @Shadow public abstract void remove();
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void onTick(CallbackInfo ci) {
-        if (((IEntityType)this.getType()).entityEjector$ejected()) this.discard();
+        if (((IEntityType)this.getType()).entityEjector$ejected()) this.remove();
     }
 }

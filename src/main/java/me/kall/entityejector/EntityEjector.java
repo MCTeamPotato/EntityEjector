@@ -34,7 +34,7 @@ public final class EntityEjector {
         });
         modBus.addListener((FMLCommonSetupEvent event) -> event.enqueueWork(() -> {
             for (String name : ENTITIES.get()) {
-                EntityType<?> entityType = ForgeRegistries.ENTITIES.getValue(ResourceLocation.parse(name));
+                EntityType<?> entityType = ForgeRegistries.ENTITIES.getValue(ResourceLocation.tryParse(name));
                 if (entityType != null) {
                     ((IEntityType)entityType).entityEjector$setEjected(true);
                 } else {
