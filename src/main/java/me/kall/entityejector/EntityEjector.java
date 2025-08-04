@@ -3,18 +3,18 @@ package me.kall.entityejector;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import me.kall.entityejector.api.IEntityType;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.EntityType;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -27,29 +27,23 @@ public final class EntityEjector {
     public static final String MOD_NAME = "EntityEjector";
     public static final Logger LOGGER = LogManager.getLogger(MOD_NAME);
 
-    public EntityEjector(@NotNull FMLJavaModLoadingContext context) {
-        IEventBus modBus = context.getModEventBus();
-        MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGHEST, (EntityJoinLevelEvent event) -> {
+    public EntityEjector(@NotNull IEventBus modEventBus, Dist dist, @NotNull ModContainer container) {
+        NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, (EntityJoinLevelEvent event) -> {
             if (((IEntityType)event.getEntity().getType()).entityEjector$ejected()) event.setCanceled(true);
         });
-        modBus.addListener((FMLCommonSetupEvent event) -> event.enqueueWork(() -> {
+        modEventBus.addListener((FMLCommonSetupEvent event) -> event.enqueueWork(() -> {
             for (String name : ENTITIES.get()) {
-                EntityType<?> entityType = ForgeRegistries.ENTITY_TYPES.getValue(ResourceLocation.parse(name));
-                if (entityType != null) {
-                    ((IEntityType)entityType).entityEjector$setEjected(true);
-                } else {
-                    LOGGER.error("Invalid entry: {}", name);
-                }
+                ((IEntityType) BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.parse(name))).entityEjector$setEjected(true);
             }
         }));
-        context.registerConfig(ModConfig.Type.COMMON, CONFIG);
+        container.registerConfig(ModConfig.Type.COMMON, CONFIG);
     }
 
-    public static final ForgeConfigSpec CONFIG;
-    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> ENTITIES;
+    public static final ModConfigSpec CONFIG;
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> ENTITIES;
 
     static {
-        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
+        ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
         builder.push(MOD_NAME);
         ENTITIES = builder.defineList("EjectedEntities", Lists.newArrayList(), Predicates.alwaysTrue());
         builder.pop();
