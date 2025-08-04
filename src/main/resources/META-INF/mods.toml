@@ -1,0 +1,13 @@
+modLoader = "javafml"
+loaderVersion = "[36,)"
+#issueTrackerURL = ""
+license = "MIT"
+
+[[mods]]
+modId = "entityejector"
+version = "${version}"
+displayName = "EntityEjector"
+authors = "Kall"
+description = '''
+'''
+#logoFile = ""
